@@ -130,7 +130,7 @@ export const calcIncomeTaxWithholding = ({
   return Math.floor((standardIncomeTax * 1021) / 1000)
 }
 
-type CalcSeverancePayTaxInput = {
+type CalcIncomeTaxForSeverancePay = {
   // 勤続年数
   yearsOfService: number
 
@@ -144,19 +144,20 @@ type CalcSeverancePayTaxInput = {
   severancePay: number
 }
 
-// 退職金の所得税
-export const calcIncomeTaxForSeverancePay = (
-  input: CalcSeverancePayTaxInput,
-) => {
-  let validatedInput
+const validateInput = (input: CalcSeverancePayTaxInput) => {
   try {
-    validatedInput = calcSeverancePayTaxInputSchema.parse(input)
+    return calcSeverancePayTaxInputSchema.parse(input)
   } catch (error) {
     throw new Error('Invalid argument.', { cause: error })
   }
+}
 
+// 退職金の所得税
+export const calcIncomeTaxForSeverancePay = (
+  input: CalcIncomeTaxForSeverancePay,
+) => {
   const { yearsOfService, isDisability, isOfficer, severancePay } =
-    validatedInput
+    validateInput(input)
 
   const retirementIncomeDeduction = calcRetirementIncomeDeduction({
     yearsOfService,
@@ -178,6 +179,7 @@ export const calcIncomeTaxForSeverancePay = (
 }
 
 // バリデーション
+
 const calcSeverancePayTaxInputSchema = z
   .object({
     yearsOfService: z.number().int().gte(1).lte(100),
@@ -186,3 +188,5 @@ const calcSeverancePayTaxInputSchema = z
     severancePay: z.number().int().gte(0).lte(1_000_000_000_000),
   })
   .strict()
+
+type CalcSeverancePayTaxInput = z.infer<typeof calcSeverancePayTaxInputSchema>
