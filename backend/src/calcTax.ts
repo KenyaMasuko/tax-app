@@ -1,5 +1,3 @@
-import { type } from 'os'
-
 import { z } from 'zod'
 
 type CalcRetirementIncomeDeductionInput = {
@@ -180,7 +178,7 @@ export const calcIncomeTaxForSeverancePay = (
 
 // バリデーション
 
-const calcSeverancePayTaxInputSchema = z
+export const calcSeverancePayTaxInputSchema = z
   .object({
     yearsOfService: z.number().int().gte(1).lte(100),
     isDisability: z.boolean(),
