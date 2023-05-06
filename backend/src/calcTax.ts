@@ -1,5 +1,7 @@
 import { type } from 'os'
 
+import { z } from 'zod'
+
 type CalcRetirementIncomeDeductionInput = {
   yearsOfService: number
   isDisability: boolean
@@ -143,12 +145,19 @@ type CalcSeverancePayTaxInput = {
 }
 
 // 退職金の所得税
-export const calcIncomeTaxForSeverancePay = ({
-  yearsOfService,
-  isDisability,
-  isOfficer,
-  severancePay,
-}: CalcSeverancePayTaxInput) => {
+export const calcIncomeTaxForSeverancePay = (
+  input: CalcSeverancePayTaxInput,
+) => {
+  let validatedInput
+  try {
+    validatedInput = calcSeverancePayTaxInputSchema.parse(input)
+  } catch (error) {
+    throw new Error('Invalid argument.', { cause: error })
+  }
+
+  const { yearsOfService, isDisability, isOfficer, severancePay } =
+    validatedInput
+
   const retirementIncomeDeduction = calcRetirementIncomeDeduction({
     yearsOfService,
     isDisability,
@@ -167,3 +176,13 @@ export const calcIncomeTaxForSeverancePay = ({
 
   return calcIncomeTaxWithholding({ standardIncomeTax: incomeTaxBase })
 }
+
+// バリデーション
+const calcSeverancePayTaxInputSchema = z
+  .object({
+    yearsOfService: z.number().int().gte(1).lte(100),
+    isDisability: z.boolean(),
+    isOfficer: z.boolean(),
+    severancePay: z.number().int().gte(0).lte(1_000_000_000_000),
+  })
+  .strict()
