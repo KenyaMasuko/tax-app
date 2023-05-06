@@ -1,4 +1,5 @@
 import {
+  calcIncomeTaxForSeverancePay,
   calcIncomeTaxWithholding,
   calcRetirementIncomeDeduction,
   calcStandardIncomeTax,
@@ -271,6 +272,32 @@ describe('所得税の源泉徴収額', () => {
       })
 
       expect(deduction).toBe(expected)
+    },
+  )
+})
+
+describe('退職金の所得税', () => {
+  test.each`
+    yearsOfService | isDisability | isOfficer | severancePay | expected
+    ${5}           | ${false}     | ${false}  | ${8_000_000} | ${482422}
+    ${10}          | ${false}     | ${false}  | ${8_000_000} | ${104652}
+    ${5}           | ${true}      | ${false}  | ${8_000_000} | ${278222}
+    ${10}          | ${true}      | ${false}  | ${8_000_000} | ${76575}
+    ${5}           | ${false}     | ${true}   | ${8_000_000} | ${788722}
+    ${10}          | ${false}     | ${true}   | ${8_000_000} | ${104652}
+    ${5}           | ${true}      | ${true}   | ${8_000_000} | ${584522}
+    ${10}          | ${true}      | ${true}   | ${8_000_000} | ${76575}
+  `(
+    '勤続年数$yearsOfService年・障害者となったことに直接基因して退職:$isDisability・' +
+      '役員等:$isOfficer・退職金$severancePay円 → $expected円',
+    ({ yearsOfService, isDisability, isOfficer, severancePay, expected }) => {
+      const tax = calcIncomeTaxForSeverancePay({
+        yearsOfService,
+        isDisability,
+        isOfficer,
+        severancePay,
+      })
+      expect(tax).toBe(expected)
     },
   )
 })
