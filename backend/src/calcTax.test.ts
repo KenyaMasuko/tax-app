@@ -1,5 +1,7 @@
 import {
+  calcIncomeTaxWithholding,
   calcRetirementIncomeDeduction,
+  calcStandardIncomeTax,
   calcTaxableRetirementIncome,
 } from './calcTax'
 
@@ -223,4 +225,52 @@ describe('課税退職所得金額', () => {
       )
     })
   })
+})
+
+describe('基準所得税額', () => {
+  test.each`
+    taxableRetirementIncome | expected
+    ${0}                    | ${0}
+    ${1_000}                | ${50}
+    ${1_949_000}            | ${97_450}
+    ${1_950_000}            | ${97_500}
+    ${3_299_000}            | ${232_400}
+    ${3_300_000}            | ${232_500}
+    ${6_949_000}            | ${962_300}
+    ${6_950_000}            | ${962_500}
+    ${8_999_000}            | ${1_433_770}
+    ${9_000_000}            | ${1_434_000}
+    ${17_999_000}           | ${4_403_670}
+    ${18_000_000}           | ${4_404_000}
+    ${39_999_000}           | ${13_203_600}
+    ${40_000_000}           | ${13_204_000}
+  `(
+    '課税退職所得金額$taxableRetirementIncome円 → $expected円}',
+    ({ taxableRetirementIncome, expected }) => {
+      const tax = calcStandardIncomeTax({
+        taxableRetirementIncome,
+      })
+
+      expect(tax).toBe(expected)
+    },
+  )
+})
+
+describe('所得税の源泉徴収額', () => {
+  test.each`
+    standardIncomeTax | expected
+    ${0}              | ${0}
+    ${50}             | ${51}
+    ${120}            | ${122}
+    ${1000}           | ${1021}
+  `(
+    '基準所得税額$standardIncomeTax円 → $expected円',
+    ({ standardIncomeTax, expected }) => {
+      const deduction = calcIncomeTaxWithholding({
+        standardIncomeTax,
+      })
+
+      expect(deduction).toBe(expected)
+    },
+  )
 })

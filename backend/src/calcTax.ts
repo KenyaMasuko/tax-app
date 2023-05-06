@@ -1,3 +1,5 @@
+import { type } from 'os'
+
 type CalcRetirementIncomeDeductionInput = {
   yearsOfService: number
   isDisability: boolean
@@ -66,4 +68,62 @@ export const calcTaxableRetirementIncome = ({
   }
 
   return Math.floor(calc() / 1000) * 1000
+}
+
+type CalcStandardIncomeTaxInput = {
+  // 課税退職所得金額
+  taxableRetirementIncome: number
+}
+
+// 基準所得税額
+export const calcStandardIncomeTax = ({
+  taxableRetirementIncome,
+}: CalcStandardIncomeTaxInput) => {
+  if (taxableRetirementIncome === 0) return 0
+
+  const calc = (
+    taxableRetirementIncome: number,
+    taxRate: number,
+    deduction: number,
+  ): number => {
+    return (taxableRetirementIncome * taxRate * 100) / 100 - deduction
+  }
+
+  if (taxableRetirementIncome <= 1_949_000) {
+    return calc(taxableRetirementIncome, 0.05, 0)
+  }
+
+  if (taxableRetirementIncome <= 3_299_000) {
+    return calc(taxableRetirementIncome, 0.1, 97_500)
+  }
+
+  if (taxableRetirementIncome <= 6_949_000) {
+    return calc(taxableRetirementIncome, 0.2, 427_500)
+  }
+
+  if (taxableRetirementIncome <= 8_999_000) {
+    return calc(taxableRetirementIncome, 0.23, 636_000)
+  }
+
+  if (taxableRetirementIncome <= 17_999_000) {
+    return calc(taxableRetirementIncome, 0.33, 1_536_000)
+  }
+
+  if (taxableRetirementIncome <= 39_999_000) {
+    return calc(taxableRetirementIncome, 0.4, 2_796_000)
+  }
+
+  return calc(taxableRetirementIncome, 0.45, 4_796_000)
+}
+
+type CalcIncomeTaxWithholdingInput = {
+  // 基準所得税額
+  standardIncomeTax: number
+}
+
+// 所得税の源泉徴収税額
+export const calcIncomeTaxWithholding = ({
+  standardIncomeTax,
+}: CalcIncomeTaxWithholdingInput) => {
+  return Math.floor((standardIncomeTax * 1021) / 1000)
 }
