@@ -24,3 +24,46 @@ export const calcRetirementIncomeDeduction = ({
 
   return deduction
 }
+
+type CalcTaxableRetirementIncomeInput = {
+  // 勤続年数
+  yearsOfService: number
+  // 退職金
+  retirementIncome: number
+  // 退職所得控除額
+  retirementIncomeDeduction: number
+  // 役員かどうか
+  isExecutive: boolean
+}
+
+// 課税退職所得金額
+export const calcTaxableRetirementIncome = ({
+  yearsOfService,
+  retirementIncome,
+  retirementIncomeDeduction,
+  isExecutive,
+}: CalcTaxableRetirementIncomeInput) => {
+  const targetIncome = retirementIncome - retirementIncomeDeduction
+
+  if (targetIncome <= 0) {
+    return 0
+  }
+
+  const calc = (): number => {
+    if (yearsOfService >= 6) {
+      return targetIncome / 2
+    }
+
+    if (isExecutive) {
+      return targetIncome
+    }
+
+    if (targetIncome >= 3_000_000) {
+      return targetIncome - 1_500_000
+    }
+
+    return targetIncome / 2
+  }
+
+  return Math.floor(calc() / 1000) * 1000
+}
